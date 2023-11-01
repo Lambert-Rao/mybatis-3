@@ -247,5 +247,28 @@ public class XMLScriptBuilder extends BaseBuilder {
       return defaultSqlNode;
     }
   }
+  private class IncludeHandler implements NodeHandler {
+
+    public IncludeHandler() {
+
+    }
+
+
+    @Override
+    public void handleNode(XNode nodeToHandle, List<SqlNode> targetContents) {
+      String refid = nodeToHandle.getStringAttribute("refid");
+      XNode nodeToInclude = configuration.getSqlFragments().get(refid);
+      XMLScriptBuilder xmlScriptBuilder = new XMLScriptBuilder(configuration,nodeToInclude,parameterType);
+      SqlSource sqlSource = xmlScriptBuilder.parseScriptNode();
+      IncludeSqlNode includeSqlNode =new IncludeSqlNode();
+//      includeSqlNode.setSqlNode(sqlSource);
+      if(sqlSource instanceof DynamicSqlSource){
+        isDynamic = true;
+      }
+      targetContents.add(includeSqlNode);
+    }
+
+
+  }
 
 }
