@@ -65,15 +65,13 @@ public class XMLScriptBuilder extends BaseBuilder {
   public SqlSource parseScriptNode() {
     MixedSqlNode rootSqlNode = parseDynamicTags(context);
     SqlSource sqlSource;
-
     if (isDynamic) {
       sqlSource = new DynamicSqlSource(configuration, rootSqlNode);
     } else {
       sqlSource = new RawSqlSource(configuration, rootSqlNode, parameterType);
     }
-    return new IncludeSqlSource(isDynamic,rootSqlNode,sqlSource);
+    return sqlSource;
   }
-
 
   protected MixedSqlNode parseDynamicTags(XNode node) {
     List<SqlNode> contents = new ArrayList<>();
@@ -179,7 +177,7 @@ public class XMLScriptBuilder extends BaseBuilder {
       String close = nodeToHandle.getStringAttribute("close");
       String separator = nodeToHandle.getStringAttribute("separator");
       ForEachSqlNode forEachSqlNode = new ForEachSqlNode(configuration, mixedSqlNode, collection, nullable, index, item,
-          open, close, separator);
+        open, close, separator);
       targetContents.add(forEachSqlNode);
     }
   }
@@ -226,7 +224,7 @@ public class XMLScriptBuilder extends BaseBuilder {
     }
 
     private void handleWhenOtherwiseNodes(XNode chooseSqlNode, List<SqlNode> ifSqlNodes,
-        List<SqlNode> defaultSqlNodes) {
+                                          List<SqlNode> defaultSqlNodes) {
       List<XNode> children = chooseSqlNode.getChildren();
       for (XNode child : children) {
         String nodeName = child.getNode().getNodeName();
@@ -248,6 +246,29 @@ public class XMLScriptBuilder extends BaseBuilder {
       }
       return defaultSqlNode;
     }
+  }
+  private class IncludeHandler implements NodeHandler {
+
+    public IncludeHandler() {
+
+    }
+
+
+    @Override
+    public void handleNode(XNode nodeToHandle, List<SqlNode> targetContents) {
+      String refid = nodeToHandle.getStringAttribute("refid");
+      XNode nodeToInclude = configuration.getSqlFragments().get(refid);
+      XMLScriptBuilder xmlScriptBuilder = new XMLScriptBuilder(configuration,nodeToInclude,parameterType);
+      SqlSource sqlSource = xmlScriptBuilder.parseScriptNode();
+      IncludeSqlNode includeSqlNode =new IncludeSqlNode();
+//      includeSqlNode.setSqlNode(sqlSource);
+      if(sqlSource instanceof DynamicSqlSource){
+        isDynamic = true;
+      }
+      targetContents.add(includeSqlNode);
+    }
+
+
   }
 
 }
