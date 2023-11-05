@@ -29,4 +29,12 @@ public class IncludeSqlNode implements SqlNode{
 
     return true;
   }
+
+  public void setSqlNode(SqlNode sqlNode) {
+    this.sqlNode = sqlNode;
+  }
+
+  public void setSqlString(String sqlString) {
+    this.sqlString = sqlString;
+  }
 }

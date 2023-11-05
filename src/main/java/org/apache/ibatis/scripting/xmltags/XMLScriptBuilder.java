@@ -22,6 +22,7 @@ import java.util.Map;
 
 import org.apache.ibatis.builder.BaseBuilder;
 import org.apache.ibatis.builder.BuilderException;
+import org.apache.ibatis.jdbc.Null;
 import org.apache.ibatis.mapping.SqlSource;
 import org.apache.ibatis.parsing.XNode;
 import org.apache.ibatis.scripting.defaults.RawSqlSource;
@@ -60,6 +61,7 @@ public class XMLScriptBuilder extends BaseBuilder {
     nodeHandlerMap.put("when", new IfHandler());
     nodeHandlerMap.put("otherwise", new OtherwiseHandler());
     nodeHandlerMap.put("bind", new BindHandler());
+    nodeHandlerMap.put("include",new IncludeHandler());
   }
 
   public SqlSource parseScriptNode() {
@@ -256,15 +258,18 @@ public class XMLScriptBuilder extends BaseBuilder {
 
     @Override
     public void handleNode(XNode nodeToHandle, List<SqlNode> targetContents) {
+
       String refid = nodeToHandle.getStringAttribute("refid");
-      XNode nodeToInclude = configuration.getSqlFragments().get(refid);
-      XMLScriptBuilder xmlScriptBuilder = new XMLScriptBuilder(configuration,nodeToInclude,parameterType);
-      SqlSource sqlSource = xmlScriptBuilder.parseScriptNode();
-      IncludeSqlNode includeSqlNode =new IncludeSqlNode();
-//      includeSqlNode.setSqlNode(sqlSource);
-      if(sqlSource instanceof DynamicSqlSource){
-        isDynamic = true;
+      if(!refid.contains(".")) {
+        Class includeClass = (Class) configuration.getIncludeSource().get("class");
+        refid = includeClass.getName() + "." + refid;
       }
+
+      Object nodeToInclude = configuration.getIncludeSource().get(refid);
+      if(nodeToInclude == null){ throw new RuntimeException();}
+      IncludeSqlNode includeSqlNode = new IncludeSqlNode();
+      includeSqlNode.setSqlNode(nodeToInclude.getSqlNode());
+      includeSqlNode.setSqlString(nodeToInclude.getSqlString());
       targetContents.add(includeSqlNode);
     }
 

@@ -134,6 +134,7 @@ public class Configuration {
   protected AutoMappingUnknownColumnBehavior autoMappingUnknownColumnBehavior = AutoMappingUnknownColumnBehavior.NONE;
 
   protected Properties variables = new Properties();
+  protected Map<String,Object> includeSource = new StrictMap<>("includeSource");
   protected ReflectorFactory reflectorFactory = new DefaultReflectorFactory();
   protected ObjectFactory objectFactory = new DefaultObjectFactory();
   protected ObjectWrapperFactory objectWrapperFactory = new DefaultObjectWrapperFactory();
@@ -1019,6 +1020,10 @@ public class Configuration {
         }
       }
     }
+  }
+
+  public Map<String, Object> getIncludeSource() {
+    return includeSource;
   }
 
   protected static class StrictMap<V> extends ConcurrentHashMap<String, V> {
