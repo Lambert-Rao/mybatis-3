@@ -20,6 +20,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import org.apache.ibatis.annotations.Insert;
 import org.apache.ibatis.annotations.Options;
 import org.apache.ibatis.annotations.Select;
+import org.apache.ibatis.annotations.Sql;
 import org.apache.ibatis.builder.annotation.MapperAnnotationBuilder;
 import org.apache.ibatis.executor.keygen.Jdbc3KeyGenerator;
 import org.apache.ibatis.mapping.MappedStatement;
@@ -109,6 +110,9 @@ class AnnotationMapperBuilderTest {
 
     @Select("select * from test")
     String selectWithoutOptions(Integer id);
+
+    @Select("select * from test")
+    @Sql()
 
   }
 
