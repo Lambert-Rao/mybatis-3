@@ -8,7 +8,7 @@ import java.lang.annotation.*;
 @Repeatable(Sql.List.class)
 public @interface Sql {
 
-  String databaseId() default "";
+  String id();
 
   String[] value();
 

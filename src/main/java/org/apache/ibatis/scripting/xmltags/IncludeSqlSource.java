@@ -3,14 +3,17 @@ package org.apache.ibatis.scripting.xmltags;
 import org.apache.ibatis.mapping.BoundSql;
 import org.apache.ibatis.mapping.SqlSource;
 
+/**
+ * @author lambert rao
+ */
 public class IncludeSqlSource implements SqlSource {
-  private boolean isDynamic;
+  private final boolean isDynamic;
 
   private SqlNode rootSqlNode;
 
   private String sqlString;
 
-  private  SqlSource sqlSource;
+  private final SqlSource sqlSource;
 
   public IncludeSqlSource(boolean isDynamic, SqlNode rootSqlNode, SqlSource sqlSource) {
     this.isDynamic = isDynamic;

@@ -15,20 +15,19 @@
  */
 package org.apache.ibatis.scripting.xmltags;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
 import org.apache.ibatis.builder.BaseBuilder;
 import org.apache.ibatis.builder.BuilderException;
-import org.apache.ibatis.jdbc.Null;
 import org.apache.ibatis.mapping.SqlSource;
 import org.apache.ibatis.parsing.XNode;
 import org.apache.ibatis.scripting.defaults.RawSqlSource;
 import org.apache.ibatis.session.Configuration;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
  * @author Clinton Begin
@@ -61,7 +60,7 @@ public class XMLScriptBuilder extends BaseBuilder {
     nodeHandlerMap.put("when", new IfHandler());
     nodeHandlerMap.put("otherwise", new OtherwiseHandler());
     nodeHandlerMap.put("bind", new BindHandler());
-    nodeHandlerMap.put("include",new IncludeHandler());
+    nodeHandlerMap.put("include", new IncludeHandler());
   }
 
   public SqlSource parseScriptNode() {
@@ -71,6 +70,10 @@ public class XMLScriptBuilder extends BaseBuilder {
       sqlSource = new DynamicSqlSource(configuration, rootSqlNode);
     } else {
       sqlSource = new RawSqlSource(configuration, rootSqlNode, parameterType);
+    }
+
+    if(configuration.getVariables().containsKey("#MapperClassToInclude")){
+      return new IncludeSqlSource(this.isDynamic , rootSqlNode , sqlSource);
     }
     return sqlSource;
   }
@@ -179,7 +182,7 @@ public class XMLScriptBuilder extends BaseBuilder {
       String close = nodeToHandle.getStringAttribute("close");
       String separator = nodeToHandle.getStringAttribute("separator");
       ForEachSqlNode forEachSqlNode = new ForEachSqlNode(configuration, mixedSqlNode, collection, nullable, index, item,
-          open, close, separator);
+        open, close, separator);
       targetContents.add(forEachSqlNode);
     }
   }
@@ -226,7 +229,7 @@ public class XMLScriptBuilder extends BaseBuilder {
     }
 
     private void handleWhenOtherwiseNodes(XNode chooseSqlNode, List<SqlNode> ifSqlNodes,
-        List<SqlNode> defaultSqlNodes) {
+                                          List<SqlNode> defaultSqlNodes) {
       List<XNode> children = chooseSqlNode.getChildren();
       for (XNode child : children) {
         String nodeName = child.getNode().getNodeName();
@@ -249,6 +252,7 @@ public class XMLScriptBuilder extends BaseBuilder {
       return defaultSqlNode;
     }
   }
+
   private class IncludeHandler implements NodeHandler {
 
     public IncludeHandler() {
@@ -260,16 +264,19 @@ public class XMLScriptBuilder extends BaseBuilder {
     public void handleNode(XNode nodeToHandle, List<SqlNode> targetContents) {
 
       String refid = nodeToHandle.getStringAttribute("refid");
-      if(!refid.contains(".")) {
-        Class includeClass = (Class) configuration.getIncludeSource().get("class");
-        refid = includeClass.getName() + "." + refid;
+      //if <include refid="namespace.sqlId"/>
+      if (!refid.contains(".")) {
+        String className = configuration.getVariables().getProperty("#MapperClassToInclude");
+        refid = className + "." + refid;
       }
 
-      Object nodeToInclude = configuration.getIncludeSource().get(refid);
-      if(nodeToInclude == null){ throw new RuntimeException();}
+      IncludeSqlSource includeSqlSource = configuration.getIncludeSource().get(refid);
+      if (includeSqlSource == null) {
+        throw new RuntimeException("A wrong refid is used in include element.");
+      }
       IncludeSqlNode includeSqlNode = new IncludeSqlNode();
-      includeSqlNode.setSqlNode(nodeToInclude.getSqlNode());
-      includeSqlNode.setSqlString(nodeToInclude.getSqlString());
+      includeSqlNode.setSqlNode(includeSqlSource.getRootSqlNode());
+      includeSqlNode.setSqlString(includeSqlSource.getSqlString());
       targetContents.add(includeSqlNode);
     }
 
