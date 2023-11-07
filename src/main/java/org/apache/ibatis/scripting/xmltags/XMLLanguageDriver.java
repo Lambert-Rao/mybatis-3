@@ -61,7 +61,7 @@ public class XMLLanguageDriver implements LanguageDriver {
     } else {
       sqlSource = new RawSqlSource(configuration, script, parameterType);
     }
-    return  new IncludeSqlSource(textSqlNode.isDynamic(),textSqlNode,sqlSource);
+    return new IncludeSqlSource(textSqlNode.isDynamic(), textSqlNode, sqlSource);
   }
 
 }

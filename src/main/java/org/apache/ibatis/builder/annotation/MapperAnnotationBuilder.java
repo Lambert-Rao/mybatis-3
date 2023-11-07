@@ -47,10 +47,10 @@ import org.apache.ibatis.annotations.Results;
 import org.apache.ibatis.annotations.Select;
 import org.apache.ibatis.annotations.SelectKey;
 import org.apache.ibatis.annotations.SelectProvider;
+import org.apache.ibatis.annotations.Sql;
 import org.apache.ibatis.annotations.TypeDiscriminator;
 import org.apache.ibatis.annotations.Update;
 import org.apache.ibatis.annotations.UpdateProvider;
-import org.apache.ibatis.annotations.Sql;
 import org.apache.ibatis.binding.MapperMethod.ParamMap;
 import org.apache.ibatis.builder.BuilderException;
 import org.apache.ibatis.builder.CacheRefResolver;
@@ -73,7 +73,6 @@ import org.apache.ibatis.mapping.SqlCommandType;
 import org.apache.ibatis.mapping.SqlSource;
 import org.apache.ibatis.mapping.StatementType;
 import org.apache.ibatis.parsing.PropertyParser;
-import org.apache.ibatis.parsing.XNode;
 import org.apache.ibatis.reflection.TypeParameterResolver;
 import org.apache.ibatis.scripting.LanguageDriver;
 import org.apache.ibatis.scripting.xmltags.IncludeSqlSource;
@@ -293,7 +292,6 @@ public class MapperAnnotationBuilder {
   void parseStatement(Method method) {
     final Class<?> parameterTypeClass = getParameterType(method);
     final LanguageDriver languageDriver = getLanguageDriver(method);
-
 
     getAnnotationWrapper(method, true, statementAnnotationTypes).ifPresent(statementAnnotation -> {
       final SqlSource sqlSource = buildSqlSource(statementAnnotation.getAnnotation(), parameterTypeClass,
@@ -587,46 +585,47 @@ public class MapperAnnotationBuilder {
       Method method) {
     SqlSource sqlSource = null;
     if (annotation instanceof Select) {
-      sqlSource  = buildSqlSourceFromStrings(((Select) annotation).value(), parameterType, languageDriver);
+      sqlSource = buildSqlSourceFromStrings(((Select) annotation).value(), parameterType, languageDriver);
     }
     if (annotation instanceof Update) {
-      sqlSource  =  buildSqlSourceFromStrings(((Update) annotation).value(), parameterType, languageDriver);
+      sqlSource = buildSqlSourceFromStrings(((Update) annotation).value(), parameterType, languageDriver);
     } else if (annotation instanceof Insert) {
-      sqlSource  =  buildSqlSourceFromStrings(((Insert) annotation).value(), parameterType, languageDriver);
+      sqlSource = buildSqlSourceFromStrings(((Insert) annotation).value(), parameterType, languageDriver);
     } else if (annotation instanceof Delete) {
-      sqlSource  =  buildSqlSourceFromStrings(((Delete) annotation).value(), parameterType, languageDriver);
+      sqlSource = buildSqlSourceFromStrings(((Delete) annotation).value(), parameterType, languageDriver);
     } else if (annotation instanceof SelectKey) {
-      sqlSource  =  buildSqlSourceFromStrings(((SelectKey) annotation).statement(), parameterType, languageDriver);
+      sqlSource = buildSqlSourceFromStrings(((SelectKey) annotation).statement(), parameterType, languageDriver);
     }
-    if(Objects.isNull(sqlSource)) {
+    if (Objects.isNull(sqlSource)) {
       sqlSource = new ProviderSqlSource(assistant.getConfiguration(), annotation, type, method);
     }
-    return sqlSource instanceof  IncludeSqlSource ? ((IncludeSqlSource)sqlSource).getSqlSource() : sqlSource;
+    return sqlSource instanceof IncludeSqlSource ? ((IncludeSqlSource) sqlSource).getSqlSource() : sqlSource;
   }
 
-  private void parseSql(){
+  private void parseSql() {
     for (Method method : type.getMethods()) {
       if (!canHaveStatement(method)) {
         continue;
       }
       try {
-        buildSql(getParameterType(method),method,getLanguageDriver(method));
+        buildSql(getParameterType(method), method, getLanguageDriver(method));
       } catch (IncompleteElementException e) {
         configuration.addIncompleteMethod(new MethodResolver(this, method));
       }
     }
   }
 
-  private void buildSql(Class<?> parameterType,Method method, LanguageDriver languageDriver){
+  private void buildSql(Class<?> parameterType, Method method, LanguageDriver languageDriver) {
     Sql[] sqls = method.getAnnotationsByType(Sql.class);
-    if (sqls.length == 0){
+    if (sqls.length == 0) {
       return;
     }
-    configuration.getVariables().put("#MapperClassToInclude",type.getName());
-    for(Sql sql : sqls){
-      IncludeSqlSource sqlSource = (IncludeSqlSource)buildSqlSourceFromStrings(sql.value(), parameterType, languageDriver);
+    configuration.getVariables().put("#MapperClassToInclude", type.getName());
+    for (Sql sql : sqls) {
+      IncludeSqlSource sqlSource = (IncludeSqlSource) buildSqlSourceFromStrings(sql.value(), parameterType,
+          languageDriver);
       String id = type.getName() + "." + sql.id();
-      configuration.getIncludeSource().put(id,sqlSource);
+      configuration.getIncludeSource().put(id, sqlSource);
     }
   }
 

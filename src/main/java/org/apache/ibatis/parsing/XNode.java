@@ -39,8 +39,6 @@ public class XNode {
   private final Properties variables;
   private final XPathParser xpathParser;
 
-
-
   public XNode(XPathParser xpathParser, Node node, Properties variables) {
     this.xpathParser = xpathParser;
     this.node = node;

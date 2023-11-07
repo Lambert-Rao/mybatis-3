@@ -17,6 +17,8 @@ package org.apache.ibatis.builder;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import java.util.HashMap;
+
 import org.apache.ibatis.annotations.*;
 import org.apache.ibatis.builder.annotation.MapperAnnotationBuilder;
 import org.apache.ibatis.executor.keygen.Jdbc3KeyGenerator;
@@ -26,8 +28,6 @@ import org.apache.ibatis.mapping.ResultSetType;
 import org.apache.ibatis.mapping.StatementType;
 import org.apache.ibatis.session.Configuration;
 import org.junit.jupiter.api.Test;
-
-import java.util.HashMap;
 
 class AnnotationMapperBuilderTest {
 
@@ -95,7 +95,7 @@ class AnnotationMapperBuilderTest {
   }
 
   @Test
-  void withSelectInclude(){
+  void withSelectInclude() {
     Configuration configuration = new Configuration();
     MapperAnnotationBuilder builder = new MapperAnnotationBuilder(configuration, Mapper.class);
     builder.parse();
@@ -107,7 +107,7 @@ class AnnotationMapperBuilderTest {
   }
 
   @Test
-  void withUpdateInclude(){
+  void withUpdateInclude() {
     Configuration configuration = new Configuration();
     MapperAnnotationBuilder builder = new MapperAnnotationBuilder(configuration, Mapper.class);
     builder.parse();
@@ -119,14 +119,14 @@ class AnnotationMapperBuilderTest {
   }
 
   @Test
-  void withSelectIncludeAndIf(){
+  void withSelectIncludeAndIf() {
     Configuration configuration = new Configuration();
     MapperAnnotationBuilder builder = new MapperAnnotationBuilder(configuration, Mapper.class);
     builder.parse();
 
     MappedStatement mappedStatement = configuration.getMappedStatement("selectWithIncludeAndIf");
     HashMap<String, Object> params = new HashMap<>();
-    params.put("name","name");
+    params.put("name", "name");
     BoundSql boundsql = mappedStatement.getSqlSource().getBoundSql(params);
     String sql = boundsql.getSql();
     assertThat(sql).isEqualTo("select name  from test");
@@ -134,9 +134,9 @@ class AnnotationMapperBuilderTest {
 
   interface Mapper {
 
-    @Sql(id = "selectId",value = "select * from test")
-    @Sql(id = "updateId",value = "update test set")
-    @Sql(id = "selectWithIfId",value = "<script><if test='id != null'>id</if><if test='name != null'>name</if></script>")
+    @Sql(id = "selectId", value = "select * from test")
+    @Sql(id = "updateId", value = "update test set")
+    @Sql(id = "selectWithIfId", value = "<script><if test='id != null'>id</if><if test='name != null'>name</if></script>")
     void provideSql();
 
     @Select("<script><include refid='selectId'/> where id = #{id}</script>")
